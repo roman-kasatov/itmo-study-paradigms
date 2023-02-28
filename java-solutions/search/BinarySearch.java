@@ -63,6 +63,7 @@ public class BinarySearch {
             return r;
         }
 
+        //:note: overflow
         int m = (r + l) / 2;
         if (arr[m] > x) {
             // Pred: arr[i] > x for i in 0..m && arr[i] <= x for x in r..(arr.length - 1)
