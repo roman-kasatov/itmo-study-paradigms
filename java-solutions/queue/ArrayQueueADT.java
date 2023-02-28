@@ -27,11 +27,7 @@ public class ArrayQueueADT {
     }
 
     private static void doubleArray(ArrayQueueADT queue) {
-        Object[] newArray = new Object[queue.size * 2];
-        for (int i = 0; i < queue.size; i++) {
-            newArray[i] = queue.arr[(i + queue.head) % queue.arr.length];
-        }
-        queue.arr = newArray;
+        queue.arr = toArray(queue, queue.size * 2);
         queue.head = 0;
     }
 
@@ -102,11 +98,14 @@ public class ArrayQueueADT {
     // Pred: true
     // Post: R.length == n, for i=0..(n-1) R[i] == a[i]
     public static Object[] toArray(ArrayQueueADT queue) {
-        Object[] ret = new Object[queue.size];
+        return toArray(queue, queue.size);
+    }
+
+    private static Object[] toArray(ArrayQueueADT queue, int lenght) {
+        Object[] ret = new Object[lenght];
         for (int i = 0; i < queue.size; i++) {
             ret[i] = queue.arr[(i + queue.head) % queue.arr.length];
         }
-
         return ret;
     }
 }

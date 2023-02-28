@@ -67,11 +67,7 @@ public class ArrayQueueModule {
     }
 
     private static void doubleArray() {
-        Object[] newArray = new Object[size * 2];
-        for (int i = 0; i < size; i++) {
-            newArray[i] = arr[(i + head) % arr.length];
-        }
-        arr = newArray;
+        arr = toArray(size * 2);
         head = 0;
     }
 
@@ -144,11 +140,14 @@ public class ArrayQueueModule {
     // Pred: true
     // Post: R.length == n, for i=0..(n-1) R[i] == a[i]
     public static Object[] toArray() {
-        Object[] ret = new Object[size];
+        return toArray(size);
+    }
+
+    private static Object[] toArray(int lenght) {
+        Object[] ret = new Object[lenght];
         for (int i = 0; i < size; i++) {
             ret[i] = arr[(i + head) % arr.length];
         }
-
         return ret;
     }
 }
