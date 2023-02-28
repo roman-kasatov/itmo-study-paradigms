@@ -14,6 +14,7 @@ public class ArrayQueue {
     private int head;
     private int size;
 
+    //:note: size = 1 is too small
     public ArrayQueue() {
         arr = new Object[1];
         head = 0;
