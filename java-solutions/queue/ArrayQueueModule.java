@@ -51,7 +51,7 @@ package queue;
 import java.util.Objects;
 
 public class ArrayQueueModule {
-    private static Object[] arr = new Object[1];
+    private static Object[] arr = new Object[10];
     private static int head = 0;
     private static int size = 0;
 
@@ -107,7 +107,7 @@ public class ArrayQueueModule {
     // Pred: true
     // Post: n' == 0
     public static void clear() {
-        arr = new Object[1];
+        arr = new Object[10];
         head = 0;
         size = 0;
     }

@@ -10,7 +10,7 @@ import java.util.Objects;
  */
 
 public class ArrayQueueADT {
-    private Object[] arr = new Object[1];
+    private Object[] arr = new Object[10];
     private int head = 0;
     private int size = 0;
 
@@ -66,7 +66,7 @@ public class ArrayQueueADT {
     // Pred: true
     // Post: n' == 0
     public static void clear(ArrayQueueADT queue) {
-        queue.arr = new Object[1];
+        queue.arr = new Object[10];
         queue.head = 0;
         queue.size = 0;
     }

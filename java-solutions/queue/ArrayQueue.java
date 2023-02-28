@@ -14,9 +14,8 @@ public class ArrayQueue {
     private int head;
     private int size;
 
-    //:note: size = 1 is too small
     public ArrayQueue() {
-        arr = new Object[1];
+        arr = new Object[10];
         head = 0;
         size = 0;
     }
@@ -73,7 +72,7 @@ public class ArrayQueue {
     // Pred: true
     // Post: n' == 0
     public void clear() {
-        arr = new Object[1];
+        arr = new Object[10];
         head = 0;
         size = 0;
     }
