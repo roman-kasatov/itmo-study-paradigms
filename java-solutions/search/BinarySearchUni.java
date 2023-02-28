@@ -24,10 +24,10 @@ public class BinarySearchUni {
     private static int uniSearch(int[] arr) {
         int l = 0, r = arr.length;
         // l <= K && r > K
-        
+
         // Invariant: 0 <= (r' - l') < (r - l) && l <= K <= r
         while (r - l > 1) {
-            int m = (r + l) / 2;
+            int m = l + (r - l) / 2;
             if (arr[m] >= arr[m - 1]) {
                 // K >= m
                 l = m;

@@ -33,7 +33,7 @@ public class BinarySearch {
 
         // Invariant: 0 <= (r' - l') < (r - l)
         while (r - l > 1) {
-            int m = (r + l) / 2;
+            int m = l + (r - l) / 2;
             if (arr[m] > x) {
                 // arr[i] > x for i in 0..m && arr[i] <= x for x in r..(arr.length - 1)
                 l = m;
@@ -63,8 +63,8 @@ public class BinarySearch {
             return r;
         }
 
-        //:note: overflow
-        int m = (r + l) / 2;
+        //:note: overflow DONE
+        int m = l + (r - l) / 2;
         if (arr[m] > x) {
             // Pred: arr[i] > x for i in 0..m && arr[i] <= x for x in r..(arr.length - 1)
             return recursiveSearch(arr, x, m, r);
