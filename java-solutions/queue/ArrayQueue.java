@@ -108,6 +108,7 @@ public class ArrayQueue {
     // Pred: true
     // Post: R.length == n, for i=0..(n-1) R[i] == a[i]
     public Object[] toArray() {
+        // :NOTE: объединить с doubleArray
         Object[] ret = new Object[size];
         for (int i = 0; i < size; i++) {
             ret[i] = arr[(i + head) % arr.length];
