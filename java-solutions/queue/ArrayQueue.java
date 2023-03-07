@@ -9,7 +9,7 @@ import java.util.Objects;
     Let immutPref(n): for i=0..(n-1): a'[i] == a[i]
  */
 
-public class ArrayQueue {
+public class ArrayQueue extends AbstractQueue {
     private Object[] arr;
     private int head;
     private int size;
@@ -38,13 +38,13 @@ public class ArrayQueue {
 
     // Pred: n > 0
     // Post: R == a[0] && n' == n && immutablePref(n)
-    public Object element() {
+    protected Object elementImpl() {
         return arr[head];
     }
 
     // Pred: n > 0
     // Post: R == a[0] && n' == n - 1 && for i=0..(n-1) a'[i] == a[i + 1]
-    public Object dequeue() {
+    protected Object dequeueImpl() {
         Object ret = arr[head];
         arr[head] = null;
         head = (head + 1) % arr.length;
@@ -71,6 +71,32 @@ public class ArrayQueue {
         arr = new Object[10];
         head = 0;
         size = 0;
+    }
+
+    @Override
+    public boolean contains(Object element) {
+        for (int i = 0; i < size; i++) {
+            if (arr[(i + head) % arr.length].equals(element)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeFirstOccurrence(Object element) {
+        Object[] allElements = toArray();
+        boolean foundFlag = false;
+        for (int i = 0; i < size; i++) {
+            if (!foundFlag && allElements[i].equals(element)) {
+                foundFlag = true;
+            } else {
+                arr[i + (foundFlag ? -1 : 0)] = allElements[i];
+            }
+        }
+        head = 0;
+        size = foundFlag ? size - 1 : size;
+        return foundFlag;
     }
 
     // Pred: element != null
@@ -104,7 +130,6 @@ public class ArrayQueue {
     // Pred: true
     // Post: R.length == n, for i=0..(n-1) R[i] == a[i]
     public Object[] toArray() {
-        // :NOTE: объединить с doubleArray DONE
         return toArray(size);
     }
 
