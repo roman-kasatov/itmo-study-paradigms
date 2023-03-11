@@ -136,6 +136,8 @@ public class ArrayQueue extends AbstractQueue {
     private Object[] toArray(int lenght) {
         Object[] ret = new Object[lenght];
         for (int i = 0; i < size; i++) {
+            // :NOTE: не надо копировать массивы поэлементно, это дорого
+            // найди метод, который копирует массивы сразу большими кусками
             ret[i] = arr[(i + head) % arr.length];
         }
         return ret;
