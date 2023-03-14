@@ -34,7 +34,7 @@ const operations = {
 }
 
 
-
+// :NOTE: использовать стандартный split
 const split = (str) => {
   const res = [];
   let startPos = 0;
@@ -52,6 +52,7 @@ const split = (str) => {
   return res;
 }
 
+// :NOTE: для этого тоже есть стандартная функция
 const retrieve = (arr, cnt) => { 
   let res = [];
   while (cnt-- > 0) {
