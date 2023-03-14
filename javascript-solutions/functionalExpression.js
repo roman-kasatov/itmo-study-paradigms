@@ -1,9 +1,6 @@
 
 const abstractOperation = (func) => (...values) => (...args) => func(...values.map(v => v(...args)))
 
-// const abstractBinaryOperation = (func) => abstractOperation( fub//(func) => (a, b) => (...args) => func(a(...args),  b(...args))
-// const abstractUnaryOperation = (func) => (a) => (...args) => func(a(...args))
-
 const variablePositions = { 'x': 0, 'y': 1, 'z': 2 }
 
 const cnst = value => () => value;
