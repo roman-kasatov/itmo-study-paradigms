@@ -66,8 +66,7 @@ let parse = (str) => {
   for (const bit of split(str)) {
     if (bit in operations) { // operation
       let [func, argNmb] = operations[bit]
-      let args = retrieve(stack, argNmb);
-      stack.push(func(...args));
+      stack.push(func(...retrieve(stack, argNmb)));
     } else if (bit in variablePositions) { // variable
       stack.push(variable(bit));
     } else { // value
@@ -76,4 +75,3 @@ let parse = (str) => {
   }
   return stack.pop()
 }
-            
