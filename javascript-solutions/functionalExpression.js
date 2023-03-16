@@ -33,41 +33,12 @@ const operations = {
   '*+': [madd, 3]
 }
 
-
-// :NOTE: использовать стандартный split
-const split = (str) => {
-  const res = [];
-  let startPos = 0;
-  for (let i = 0; i < str.length; i++) {
-    if (str[i] == ' ') {
-      if (startPos < i) {
-        res.push(str.substring(startPos, i));
-      }
-      startPos = i + 1;
-    }
-  }
-  if (startPos < str.length) {
-    res.push(str.substring(startPos));
-  }
-  return res;
-}
-
-// :NOTE: для этого тоже есть стандартная функция
-const retrieve = (arr, cnt) => { 
-  let res = [];
-  while (cnt-- > 0) {
-    res.push(arr.pop())
-  }
-  return res.reverse()
-}
-
 let parse = (str) => {
   let stack = []
-
-  for (const bit of split(str)) {
+  for (const bit of str.split(" ").filter(s => s !== '')) {
     if (bit in operations) { // operation
       let [func, argNmb] = operations[bit]
-      stack.push(func(...retrieve(stack, argNmb)));
+      stack.push(func(...stack.splice(-argNmb, argNmb)));
     } else if (bit in variablePositions) { // variable
       stack.push(variable(bit));
     } else { // value
