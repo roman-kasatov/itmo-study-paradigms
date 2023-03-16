@@ -10,25 +10,18 @@ import java.util.Objects;
  */
 
 public class ArrayQueue extends AbstractQueue {
-    private Object[] arr;
-    private int head;
-    private int size;
 
-    public ArrayQueue() {
-        arr = new Object[10];
-        head = 0;
-        size = 0;
-    }
+    private Object[] arr = new Object[10];
+    private int head = 0;
+
 
     // Pred: element != null
-    // Post: n' == n + 1 && a[n'] == element && immutPref(n)
-    public void enqueue(Object element) {
-        Objects.requireNonNull(element);
+    // Post: n' == n + 1 && a[n'] == emlement && immutPref(n)
+    public void enqueueImpl(Object element) {
         if (size == arr.length) {
             doubleArray();
         }
         arr[(size + head) % arr.length] = element;
-        size++;
     }
 
     private void doubleArray() {
@@ -48,7 +41,6 @@ public class ArrayQueue extends AbstractQueue {
         Object ret = arr[head];
         arr[head] = null;
         head = (head + 1) % arr.length;
-        size--;
         return ret;
     }
 
@@ -67,10 +59,9 @@ public class ArrayQueue extends AbstractQueue {
 
     // Pred: true
     // Post: n' == 0
-    public void clear() {
+    public void clearImpl() {
         arr = new Object[10];
         head = 0;
-        size = 0;
     }
 
     @Override
@@ -84,7 +75,7 @@ public class ArrayQueue extends AbstractQueue {
     }
 
     @Override
-    public boolean removeFirstOccurrence(Object element) {
+    public boolean removeFirstOccurrenceImpl(Object element) {
         Object[] allElements = toArray();
         boolean foundFlag = false;
         for (int i = 0; i < size; i++) {
@@ -95,7 +86,6 @@ public class ArrayQueue extends AbstractQueue {
             }
         }
         head = 0;
-        size = foundFlag ? size - 1 : size;
         return foundFlag;
     }
 
@@ -117,16 +107,6 @@ public class ArrayQueue extends AbstractQueue {
         return arr[(head + size - 1) % arr.length];
     }
 
-    // Pred: n > 0
-    // Post:  R == a[n - 1] && immutPref(n - 1) && n' == n - 1
-    public Object remove() {
-        int pos = (head + size - 1) % arr.length;
-        Object ret = arr[pos];
-        arr[pos] = 0;
-        size--;
-        return ret;
-    }
-
     // Pred: true
     // Post: R.length == n, for i=0..(n-1) R[i] == a[i]
     public Object[] toArray() {
@@ -135,10 +115,11 @@ public class ArrayQueue extends AbstractQueue {
 
     private Object[] toArray(int lenght) {
         Object[] ret = new Object[lenght];
-        for (int i = 0; i < size; i++) {
-            // :NOTE: не надо копировать массивы поэлементно, это дорого
-            // найди метод, который копирует массивы сразу большими кусками
-            ret[i] = arr[(i + head) % arr.length];
+        int lengthOfBeginning = Math.min(size, arr.length - head),
+                lengthOfEnding = size - lengthOfBeginning;
+        System.arraycopy(arr, head, ret, 0, lengthOfBeginning);
+        if (lengthOfEnding > 0) {
+            System.arraycopy(arr, 0, ret, lengthOfBeginning, lengthOfEnding);
         }
         return ret;
     }

@@ -1,6 +1,7 @@
 package queue;
 
 public class LinkedQueue extends AbstractQueue {
+
     private static class Node {
         final Object value;
         Node next;
@@ -12,10 +13,9 @@ public class LinkedQueue extends AbstractQueue {
 
     private Node head;
     private Node tail;
-    private int size = 0;
 
     @Override
-    public void enqueue(Object element) {
+    public void enqueueImpl(Object element) {
         Node node = new Node(element);
         if (head == null) {
             head = tail = node;
@@ -23,7 +23,6 @@ public class LinkedQueue extends AbstractQueue {
             tail.next = node;
             tail = tail.next;
         }
-        size++;
     }
 
     @Override
@@ -38,7 +37,6 @@ public class LinkedQueue extends AbstractQueue {
             tail = null;
         }
         head = head.next;
-        size--;
         return value;
     }
 
@@ -53,8 +51,7 @@ public class LinkedQueue extends AbstractQueue {
     }
 
     @Override
-    public void clear() {
-        size = 0;
+    public void clearImpl() {
         head = tail = null;
     }
 
@@ -71,18 +68,17 @@ public class LinkedQueue extends AbstractQueue {
     }
 
     @Override
-    public boolean removeFirstOccurrence(Object element) {
+    public boolean removeFirstOccurrenceImpl(Object element) {
         if (head == null) {
             return false;
         } else if (head.value.equals(element)) {
-            dequeue();
+            dequeueImpl();
             return true;
         } else {
             for (Node node = head; node.next != null; node=node.next) {
                 if (node.next.value.equals(element)) {
                     tail = (tail == node.next) ? node : tail;
                     node.next = node.next.next;
-                    size--;
                     return true;
                 }
             }
