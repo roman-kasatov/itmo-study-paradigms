@@ -220,3 +220,26 @@ let parse = (str) => {
     }
     return stack.pop()
 }
+
+/*
+Testing: new Sumsq2(new Const(2), new Const(3)).diff('x')
+d = 13.000000
+Exception in thread "main" java.lang.AssertionError:
+    in expr.evaluate(2.00000000000000000000,2.00000000000000000000,2.00000000000000000000);
+    where expr = new Sumsq2(new Const(2), new Const(3)).diff('x')
+: Expected 0.000000000000, found 10.000000000000
+        at base.Asserts.error(Unknown Source)
+        at base.Asserts.assertTrue(Unknown Source)
+        at base.Selector.lambda$test$2(Unknown Source)
+        at base.Log.lambda$action$0(Unknown Source)
+        at base.Log.silentScope(Unknown Source)
+        at base.Log.scope(Unknown Source)
+        at base.Log.scope(Unknown Source)
+        at base.Selector.lambda$test$3(Unknown Source)
+        at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+        at base.Selector.test(Unknown Source)
+        at base.Selector.main(Unknown Source)
+        at jstest.object.FullObjectTest.main(Unknown Source)
+ERROR: Tests: failed
+
+ */
