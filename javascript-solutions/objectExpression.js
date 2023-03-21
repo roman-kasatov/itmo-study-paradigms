@@ -58,119 +58,67 @@ const Divide = createOperation(
     )
 )
 
-
-function Sumsq2(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return this.values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args)
+function createSumsqN(argNmb) {
+    constructor = function(...values) {
+        this.values = values
+        this.evaluate = function (...args) {
+            return this.values.map(a => new Multiply(a, a))
+                .reduce((sum, a) => new Add(sum, a), new Const(0))
+                .evaluate(...args)
+        }
+        this.toString = function () {
+            return this.values.map(v => v.toString()).join(" ") + " " + "sumsq" + argNmb
+        }
+        this.diff = function (name) {
+            return this.values.map(a =>
+                new Multiply(
+                    new Multiply(
+                        a.diff(name),
+                        new Const(2)
+                    ),
+                    a
+                ))
+                .reduce((sum, a) => new Add(sum, a), new Const(0))
+        }
     }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "sumsq2"
-    }
-    this.diff = function (name) {
-        return this.values.map(a => new Multiply(a, new Const(2)))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-    }
+    return constructor
 }
 
-function Sumsq3(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args)
+function createDistanceN(argNmb) {
+    constructor = function(...values) {
+        this.values = values
+        this.evaluate = function (...args) {
+            return Math.sqrt(values.map(a => new Multiply(a, a))
+                .reduce((sum, a) => new Add(sum, a), new Const(0))
+                .evaluate(...args))
+        }
+        this.toString = function () {
+            return this.values.map(v => v.toString()).join(" ") + " " + "distance" + argNmb
+        }
+        this.diff = function (name) {
+            return new Divide(
+                this.values.map(a =>
+                    new Multiply(
+                        a.diff(name),
+                        a
+                    ))
+                    .reduce((sum, a) => new Add(sum, a), new Const(0)),
+                this
+            )
+        }
     }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "sumsq3"
-    }
-    this.diff = function (name) {
-        return this.values.map(a => new Multiply(a, new Const(2)))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-    }
+    return constructor
 }
 
-function Sumsq4(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args)
-    }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "sumsq4"
-    }
-    this.diff = function (name) {
-        return this.values.map(a => new Multiply(a, new Const(2)))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-    }
-}
+const Sumsq2 = createSumsqN(2)
+const Sumsq3 = createSumsqN(3)
+const Sumsq4 = createSumsqN(4)
+const Sumsq5 = createSumsqN(5)
 
-function Sumsq5(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args)
-    }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "sumsq5"
-    }
-    this.diff = function (name) {
-        return this.values.map(a => new Multiply(a, new Const(2)))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-    }
-}
-
-function Distance2(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return Math.sqrt(values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args))
-    }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "distance2"
-    }
-}
-
-function Distance3(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return Math.sqrt(values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args))
-    }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "distance3"
-    }
-}
-
-function Distance4(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return Math.sqrt(values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args))
-    }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "distance4"
-    }
-}
-
-function Distance5(...values) {
-    this.values = values
-    this.evaluate = function (...args) {
-        return Math.sqrt(values.map(a => new Multiply(a, a))
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
-            .evaluate(...args))
-    }
-    this.toString = function () {
-        return this.values.map(v => v.toString()).join(" ") + " " + "distance5"
-    }
-}
-
+const Distance2 = createDistanceN(2)
+const Distance3 = createDistanceN(3)
+const Distance4 = createDistanceN(4)
+const Distance5 = createDistanceN(5)
 
 const Negate = createOperation(
     a => -a,
@@ -221,25 +169,3 @@ let parse = (str) => {
     return stack.pop()
 }
 
-/*
-Testing: new Sumsq2(new Const(2), new Const(3)).diff('x')
-d = 13.000000
-Exception in thread "main" java.lang.AssertionError:
-    in expr.evaluate(2.00000000000000000000,2.00000000000000000000,2.00000000000000000000);
-    where expr = new Sumsq2(new Const(2), new Const(3)).diff('x')
-: Expected 0.000000000000, found 10.000000000000
-        at base.Asserts.error(Unknown Source)
-        at base.Asserts.assertTrue(Unknown Source)
-        at base.Selector.lambda$test$2(Unknown Source)
-        at base.Log.lambda$action$0(Unknown Source)
-        at base.Log.silentScope(Unknown Source)
-        at base.Log.scope(Unknown Source)
-        at base.Log.scope(Unknown Source)
-        at base.Selector.lambda$test$3(Unknown Source)
-        at java.base/java.lang.Iterable.forEach(Iterable.java:75)
-        at base.Selector.test(Unknown Source)
-        at base.Selector.main(Unknown Source)
-        at jstest.object.FullObjectTest.main(Unknown Source)
-ERROR: Tests: failed
-
- */
