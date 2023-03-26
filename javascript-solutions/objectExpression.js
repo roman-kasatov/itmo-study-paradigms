@@ -58,31 +58,24 @@ const Divide = createOperation(
     )
 )
 
-function createSumsqN(argNmb) {
-    constructor = function(...values) {
-        this.values = values
-        this.evaluate = function (...args) {
-            return this.values.map(a => new Multiply(a, a))
-                .reduce((sum, a) => new Add(sum, a), new Const(0))
-                .evaluate(...args)
-        }
-        this.toString = function () {
-            return this.values.map(v => v.toString()).join(" ") + " " + "sumsq" + argNmb
-        }
-        this.diff = function (name) {
-            return this.values.map(a =>
+
+const createSumsqN = argNmb =>
+    createOperation(
+        (...values) => values.map(a => a * a).reduce((sum, a) => sum + a, 0),
+        "sumsq" + argNmb,
+        (name, ...values) => values
+            .map(a =>
                 new Multiply(
                     new Multiply(
                         a.diff(name),
                         new Const(2)
                     ),
                     a
-                ))
-                .reduce((sum, a) => new Add(sum, a), new Const(0))
-        }
-    }
-    return constructor
-}
+                )
+            )
+            .reduce((sum, a) => new Add(sum, a), new Const(0))
+    )
+
 
 function createDistanceN(argNmb) {
     constructor = function(...values) {
