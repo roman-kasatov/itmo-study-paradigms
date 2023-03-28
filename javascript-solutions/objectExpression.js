@@ -15,6 +15,10 @@ function AbstractOperation(...values) {
     this.diff = function (name) {
         return this.diff_function(name, ...values)
     }
+
+    this.prefix = function () {
+        return `(${this.sign} ${this.values.map(v => v.prefix()).join(" ")})`
+    }
 }
 
 function createOperation(func, sign, diff_function) {
@@ -76,7 +80,6 @@ const createSumsqN = argNmb =>
             .reduce((sum, a) => new Add(sum, a), new Const(0))
     )
 
-
 function createDistanceN(argNmb) {
     constructor = function(...values) {
         this.values = values
@@ -123,12 +126,14 @@ function Variable(name) {
     this.evaluate = (...args) => args[variablePositions[name]]
     this.toString = () => name
     this.diff = (dif_name) => dif_name === name ? new Const(1) : new Const(0)
+    this.prefix = () => name
 }
 
 function Const(value) {
     this.evaluate = () => value
     this.toString = () => value.toString()
     this.diff = () => new Const(0)
+    this.prefix = () => value.toString()
 }
 
 const operations = {
@@ -145,6 +150,59 @@ const operations = {
     "distance3": [Distance3, 3],
     "distance4": [Distance4, 4],
     "distance5": [Distance5, 5]
+}
+
+
+function ParseError(message) {
+    this.prototype = Error.prototype
+    this.message = message
+}
+
+function parsePrefix(str) {
+    const stack = []
+    const operationsStack = []
+    const bits = str.split(/([()])/g).reduce((res, cur) => {
+        const withoutSpaces = cur.match(/[^\s]+/g);
+        if (withoutSpaces !== null) {
+            res.push(...withoutSpaces)
+        }
+        return res
+    }, [])
+    for (const bit of bits) {
+        if (bit === '(') {
+            stack.push(bit)
+        } else if (bit in variablePositions) {
+            stack.push(new Variable(bit))
+        } else if (!isNaN(bit)) {
+            stack.push(new Const(parseInt(bit)))
+        } else if (bit in operations) {
+            operationsStack.push(bit)
+        } else if (bit === ')') {
+            let operationName = operationsStack.pop()
+            let [Func, argNmb] = operations[operationName]
+            if (stack.length <= argNmb) {
+                throw new ParseError(`Not enough arguments for operation ${operationName}`)
+            }
+            let values = stack.splice(-argNmb)
+            for (const value of values) {
+                if (value === '(') {
+                    throw new ParseError(`Not enough arguments for operation ${operationName}`)
+                }
+            }
+            if (stack.pop() !== '(') {
+                throw new ParseError(`Too many arguments for operation ${operationName}`)
+            }
+            stack.push(new Func(...values))
+        } else {
+            throw new ParseError(`Can't parse '${bit}'`)
+        }
+    }
+    if (operationsStack.length !== 0) {
+        throw new ParseError(`An error occurred while parsing operation ${operationsStack.pop()}`)
+    } else if (stack.length !== 1) {
+        throw new ParseError(`Too many arguments or parenthesis near ${stack[0]}`)
+    }
+    return stack.pop()
 }
 
 let parse = (str) => {
