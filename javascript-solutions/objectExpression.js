@@ -19,6 +19,10 @@ function AbstractOperation(...values) {
     this.prefix = function () {
         return `(${this.sign} ${this.values.map(v => v.prefix()).join(" ")})`
     }
+
+    this.postfix = function () {
+        return `(${this.values.map(v => v.prefix()).join(" ")} ${this.sign})`
+    }
 }
 
 function createOperation(func, sign, diff_function) {
@@ -106,6 +110,28 @@ function createDistanceN(argNmb) {
     return constructor
 }
 
+const Sumexp = createOperation(
+    (...values) => values.map(a => Math.exp(a)).reduce((sum, a) => sum + a, 0),
+    "sumexp",
+    (name, ...values) => values
+        .map(a =>
+            new Multiply(
+                a.diff(name),
+                new Sumexp(a)
+            )
+        )
+        .reduce((sum, a) => new Add(sum, a), new Const(0))
+)
+
+const LSE = createOperation(
+    (...values) => Math.log(values.map(a => Math.exp(a)).reduce((sum, a) => sum + a, 0)),
+    "lse",
+    (name, ...values) => new Divide(
+        new Sumexp(...values).diff(name),
+        new Sumexp(...values)
+    )
+)
+
 const Sumsq2 = createSumsqN(2)
 const Sumsq3 = createSumsqN(3)
 const Sumsq4 = createSumsqN(4)
@@ -127,6 +153,7 @@ function Variable(name) {
     this.toString = () => name
     this.diff = (dif_name) => dif_name === name ? new Const(1) : new Const(0)
     this.prefix = () => name
+    this.postfix = this.prefix
 }
 
 function Const(value) {
@@ -134,6 +161,7 @@ function Const(value) {
     this.toString = () => value.toString()
     this.diff = () => new Const(0)
     this.prefix = () => value.toString()
+    this.postfix = this.prefix
 }
 
 const operations = {
@@ -149,7 +177,9 @@ const operations = {
     "distance2": [Distance2, 2],
     "distance3": [Distance3, 3],
     "distance4": [Distance4, 4],
-    "distance5": [Distance5, 5]
+    "distance5": [Distance5, 5],
+    "sumexp": [Sumexp, -1],
+    "lse": [LSE, -1]
 }
 
 
@@ -158,44 +188,67 @@ function ParseError(message) {
     this.message = message
 }
 
-function parsePrefix(str) {
+const splitByParenthesis = (str) =>
+    str.split(/([()])/g)
+        .reduce(
+            (res, cur) => {
+                const withoutSpaces = cur.match(/[^\s]+/g);
+                if (withoutSpaces !== null) {
+                    res.push(...withoutSpaces)
+                }
+                return res
+            },
+            []
+        )
+
+
+const parsePrefixPostfix = isPrefix => str => {
+    let prevBit = null
     const stack = []
+    const openingParenthesisPositions = []
     const operationsStack = []
-    const bits = str.split(/([()])/g).reduce((res, cur) => {
-        const withoutSpaces = cur.match(/[^\s]+/g);
-        if (withoutSpaces !== null) {
-            res.push(...withoutSpaces)
-        }
-        return res
-    }, [])
+    const bits = splitByParenthesis(str)
     for (const bit of bits) {
         if (bit === '(') {
-            stack.push(bit)
+            openingParenthesisPositions.push(stack.length)
         } else if (bit in variablePositions) {
             stack.push(new Variable(bit))
         } else if (!isNaN(bit)) {
             stack.push(new Const(parseInt(bit)))
         } else if (bit in operations) {
+            if (isPrefix && prevBit !== '(') {
+                throw new ParseError(`Expected '(' before operation sign ${bit} but found ${prevBit}`)
+            }
             operationsStack.push(bit)
         } else if (bit === ')') {
+            if (!isPrefix && !(prevBit in operations)) {
+                throw new ParseError(`Expected operation sign before ${bit} but found ${prevBit}`)
+            }
+            if (operationsStack.length === 0) {
+                throw new ParseError(`Expected an operation sign before )`);
+            }
             let operationName = operationsStack.pop()
             let [Func, argNmb] = operations[operationName]
-            if (stack.length <= argNmb) {
-                throw new ParseError(`Not enough arguments for operation ${operationName}`)
+            if (openingParenthesisPositions.length === 0) {
+                throw new ParseError(`Expected opening parenthesis before )`)
             }
-            let values = stack.splice(-argNmb)
-            for (const value of values) {
-                if (value === '(') {
-                    throw new ParseError(`Not enough arguments for operation ${operationName}`)
-                }
+            let values = stack.splice(openingParenthesisPositions.pop())
+            if (argNmb !== -1 && values.length !== argNmb) {
+                throw new ParseError(`Expected ${argNmb} arguments for ${operationName} but found ${values.length}`)
             }
-            if (stack.pop() !== '(') {
-                throw new ParseError(`Too many arguments for operation ${operationName}`)
+            try {
+                stack.push(new Func(...values))
+            } catch (error) {
+                throw new ParseError(`Inappropriate arguments for ${operationName} \
+                    which caused a following error: ${error.message}`)
             }
-            stack.push(new Func(...values))
         } else {
             throw new ParseError(`Can't parse '${bit}'`)
         }
+        prevBit = bit
+    }
+    if (openingParenthesisPositions.length !== 0) {
+        throw new ParseError(`Too many '('`)
     }
     if (operationsStack.length !== 0) {
         throw new ParseError(`An error occurred while parsing operation ${operationsStack.pop()}`)
@@ -204,6 +257,9 @@ function parsePrefix(str) {
     }
     return stack.pop()
 }
+
+const parsePostfix = parsePrefixPostfix(false)
+const parsePrefix = parsePrefixPostfix(true)
 
 let parse = (str) => {
     let stack = []
