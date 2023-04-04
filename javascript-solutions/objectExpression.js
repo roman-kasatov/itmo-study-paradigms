@@ -261,6 +261,54 @@ const parsePrefixPostfix = isPrefix => str => {
 const parsePostfix = parsePrefixPostfix(false)
 const parsePrefix = parsePrefixPostfix(true)
 
+/*
+Exception in thread "main" java.lang.AssertionError: Error while testing new Divide(new Negate(new Variable('x')), new Const(2)):
+    in expr.postfix()
+    where expr = new Divide(new Negate(new Variable('x')), new Const(2))
+:
+     expected `((x negate) 2 /)`,
+       actual `((negate x) 2 /)`
+        at jstest.expression.BaseTester.test(Unknown Source)
+        at jstest.expression.Builder.lambda$selector$4(Unknown Source)
+        at base.Selector$Composite.lambda$v$0(Unknown Source)
+        at base.Selector.lambda$test$2(Unknown Source)
+        at base.Log.lambda$action$0(Unknown Source)
+        at base.Log.silentScope(Unknown Source)
+        at base.Log.scope(Unknown Source)
+        at base.Log.scope(Unknown Source)
+        at base.Selector.lambda$test$3(Unknown Source)
+        at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+        at base.Selector.test(Unknown Source)
+        at base.Selector.main(Unknown Source)
+        at jstest.prefix.FullPostfixTest.main(Unknown Source)
+Caused by: java.lang.AssertionError:
+    in expr.postfix()
+    where expr = new Divide(new Negate(new Variable('x')), new Const(2))
+:
+     expected `((x negate) 2 /)`,
+       actual `((negate x) 2 /)`
+        at base.Asserts.error(Unknown Source)
+        at base.Asserts.assertTrue(Unknown Source)
+        at base.Asserts.assertEquals(Unknown Source)
+        at jstest.Engine$Result.assertEquals(Unknown Source)
+        at jstest.object.ObjectTester.lambda$test$1(Unknown Source)
+        at base.TestCounter.lambda$test$0(Unknown Source)
+        at base.TestCounter.lambda$testV$2(Unknown Source)
+        at base.Log.silentScope(Unknown Source)
+        at base.TestCounter.testV(Unknown Source)
+        at base.TestCounter.test(Unknown Source)
+        at jstest.object.ObjectTester.test(Unknown Source)
+        at jstest.prefix.ParserTester.test(Unknown Source)
+        at jstest.expression.BaseTester.lambda$test$1(Unknown Source)
+        at base.Log.lambda$action$0(Unknown Source)
+        at base.Log.silentScope(Unknown Source)
+        at base.Log.scope(Unknown Source)
+        at base.Log.scope(Unknown Source)
+        at jstest.expression.BaseTester.test(Unknown Source)
+        ... 13 more
+ERROR: Tests: failed
+
+ */
 let parse = (str) => {
     let stack = []
     for (const bit of str.split(" ").filter(s => s !== '')) {
