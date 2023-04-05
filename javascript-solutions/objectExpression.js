@@ -182,11 +182,12 @@ const operations = {
     "lse": [LSE, -1]
 }
 
-
+// :NOTE: наверное, было бы лучше отнаследовать более специфичные ошибки от ParseError
 function ParseError(message) {
     this.prototype = Error.prototype
     this.message = message
 }
+// :NOTE: можно было заменить все вхождения ( и ) на " ( " и " ) ", а потом один раз посплитить по \s+
 
 const splitByParenthesis = (str) =>
     str.split(/([()])/g)
