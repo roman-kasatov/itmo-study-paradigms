@@ -182,26 +182,43 @@ const operations = {
     "lse": [LSE, -1]
 }
 
-// :NOTE: наверное, было бы лучше отнаследовать более специфичные ошибки от ParseError
+
 function ParseError(message) {
-    this.prototype = Error.prototype
+    Error.call(this.message)
     this.message = message
+    this.toString = () => this.name + ": " + this.message
 }
-// :NOTE: можно было заменить все вхождения ( и ) на " ( " и " ) ", а потом один раз посплитить по \s+
+ParseError.prototype = Object.create(Error.prototype)
+ParseError.prototype.name = "ParseError"
 
-const splitByParenthesis = (str) =>
-    str.split(/([()])/g)
-        .reduce(
-            (res, cur) => {
-                const withoutSpaces = cur.match(/[^\s]+/g);
-                if (withoutSpaces !== null) {
-                    res.push(...withoutSpaces)
-                }
-                return res
-            },
-            []
-        )
+function createParseError(name) {
+    constructor = function(message) {
+        ParseError.call(this, message)
+        this.name = name
+    }
+    constructor.prototype = Object.create(ParseError.prototype)
+    constructor.prototype.name = name
+    return constructor
+}
 
+const OperationSignPositionError = createParseError(
+    "OperationSignPositionError"
+)
+
+const ParenthesisError = createParseError(
+    "ParenthesisError"
+)
+
+const ArgumentsError = createParseError(
+    "ArgumentsError"
+)
+
+const InappropriateElementError = createParseError(
+    "InappropriateElementError"
+)
+
+const splitByParenthesis = str =>
+    str.replace(/([()])/g, " $& ").trim().split(/\s+/)
 
 const parsePrefixPostfix = isPrefix => str => {
     let prevBit = null
@@ -218,38 +235,38 @@ const parsePrefixPostfix = isPrefix => str => {
             stack.push(new Const(parseInt(bit)))
         } else if (bit in operations) {
             if (isPrefix && prevBit !== '(') {
-                throw new ParseError(`Expected '(' before operation sign ${bit} but found ${prevBit}`)
+                throw new OperationSignPositionError(`Expected '(' before operation sign ${bit} but found ${prevBit}`)
             }
             operationsStack.push(bit)
         } else if (bit === ')') {
             if (!isPrefix && !(prevBit in operations)) {
-                throw new ParseError(`Expected operation sign before ${bit} but found ${prevBit}`)
+                throw new OperationSignPositionError(`Expected operation sign before ${bit} but found ${prevBit}`)
             }
             if (operationsStack.length === 0) {
-                throw new ParseError(`Expected an operation sign before )`);
+                throw new OperationSignPositionError(`Expected an operation sign before )`);
             }
             let operationName = operationsStack.pop()
             let [Func, argNmb] = operations[operationName]
             if (openingParenthesisPositions.length === 0) {
-                throw new ParseError(`Expected opening parenthesis before )`)
+                throw new ParenthesisError(`Expected opening parenthesis before )`)
             }
             let values = stack.splice(openingParenthesisPositions.pop())
             if (argNmb !== -1 && values.length !== argNmb) {
-                throw new ParseError(`Expected ${argNmb} arguments for ${operationName} but found ${values.length}`)
+                throw new ArgumentsError(`Expected ${argNmb} arguments for ${operationName} but found ${values.length}`)
             }
             try {
                 stack.push(new Func(...values))
             } catch (error) {
-                throw new ParseError(`Inappropriate arguments for ${operationName} \
+                throw new ArgumentsError(`Inappropriate arguments for ${operationName} \
                     which caused a following error: ${error.message}`)
             }
         } else {
-            throw new ParseError(`Can't parse '${bit}'`)
+            throw new InappropriateElementError(`Can't parse '${bit}'`)
         }
         prevBit = bit
     }
     if (openingParenthesisPositions.length !== 0) {
-        throw new ParseError(`Too many '('`)
+        throw new ParenthesisError(`Too many '('`)
     }
     if (operationsStack.length !== 0) {
         throw new ParseError(`An error occurred while parsing operation ${operationsStack.pop()}`)
