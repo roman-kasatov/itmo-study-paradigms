@@ -1,7 +1,7 @@
 
 (defn check-vector [v] (and (vector? v) (every? number? v)))
 (defn check-equal-size [& vs] (or (= 0 (count vs)) (apply = (map count vs))))
-(defn check-matrix [m] (and (vector? m) (every? vector? m) (apply check-equal-size m)))
+(defn check-matrix [m] (and (vector? m) (every? check-vector m) (apply check-equal-size m)))
 (defn check-equal-size-matrices [& ms]
   (and
    (apply check-equal-size ms)
@@ -25,6 +25,7 @@
 (defn scalar [& vs]
   {:pre [(every? check-vector vs) (apply check-equal-size vs)]
    :post [(number? %)]}
+      ;; можно apply
   (reduce + 0 (apply v* vs))
   )
 
@@ -35,9 +36,11 @@
   )
 
 (defn vect [& vs]
+      ;; :NOTE: нужна проверка что размерность 3
   {:pre [(every? check-vector vs) (apply check-equal-size vs)]
    :post [(check-vector %) (check-equal-size % (first vs))]}
   (reduce
+    ;; вместо кучи nth можно развернуть вектора на входе -- [v1x v1y v1z]
    (fn [v1 v2]
      (vector
       (- (* (nth v1 1) (nth v2 2)) (* (nth v1 2) (nth v2 1)))
@@ -93,6 +96,8 @@
                         (every? number? ts)
                         (and (every? vector? ts) (apply check-equal-size ts))
                         )]}
+                ;; :NOTE: проверка на тензоры не работает
+                ;; (t+ [[[1, 2], [3, 4]], [[5], [6]]]    [[[1, 2], [3, 4]], [[5], [6]]]),
                 (cond
                   (every? number? ts) (apply operation ts)
                   :else (apply mapv func ts)
