@@ -25,8 +25,7 @@
 (defn scalar [& vs]
   {:pre [(every? check-vector vs) (apply check-equal-size vs)]
    :post [(number? %)]}
-      ;; можно apply
-  (reduce + 0 (apply v* vs))
+  (apply + (apply v* vs))
   )
 
 (defn v*s [v & ss]
@@ -36,16 +35,14 @@
   )
 
 (defn vect [& vs]
-      ;; :NOTE: нужна проверка что размерность 3
-  {:pre [(every? check-vector vs) (apply check-equal-size vs)]
+  {:pre [(every? check-vector vs) (apply check-equal-size vs) (= 3 (count (first vs)))]
    :post [(check-vector %) (check-equal-size % (first vs))]}
   (reduce
-    ;; вместо кучи nth можно развернуть вектора на входе -- [v1x v1y v1z]
-   (fn [v1 v2]
+   (fn [[v1x v1y v1z] [v2x v2y v2z]]
      (vector
-      (- (* (nth v1 1) (nth v2 2)) (* (nth v1 2) (nth v2 1)))
-      (- (* (nth v1 2) (nth v2 0)) (* (nth v1 0) (nth v2 2)))
-      (- (* (nth v1 0) (nth v2 1)) (* (nth v1 1) (nth v2 0)))
+      (- (* v1y v2z) (* v1z v2y))
+      (- (* v1z v2x) (* v1x v2z))
+      (- (* v1x v2y) (* v1y v2x))
       )
      )
    vs
@@ -57,7 +54,7 @@
     {:pre [(every? check-matrix ms) (apply check-equal-size-matrices ms)]}
     (apply mapv operation ms))
   )
-;      :post [(check-matrix %) (check-equal-size-matrices % (first ms))]
+
 
 (def m+ (vectorwise v+))
 (def m- (vectorwise v-))
@@ -90,19 +87,36 @@
   (reduce (fn [m1 m2] (mapv (fn [row] (m*v (transpose m2) row)) m1)) ms)
   )
 
+(defn check-tensor [t]
+  (or
+   (number? t)
+   (every? number? t)
+   (and
+    (apply check-equal-size t)
+    ; (t+ [[[1, 2], [3, 4]], [[5], [6]]]    [[[1, 2], [3, 4]], [[5], [6]]])
+    (check-tensor (apply concat t))
+    )
+   )
+  )
+
 (defn tensorwise [operation]
-  (letfn [(func [& ts]
-                {:pre [(or
-                        (every? number? ts)
-                        (and (every? vector? ts) (apply check-equal-size ts))
-                        )]}
-                ;; :NOTE: проверка на тензоры не работает
-                ;; (t+ [[[1, 2], [3, 4]], [[5], [6]]]    [[[1, 2], [3, 4]], [[5], [6]]]),
-                (cond
-                  (every? number? ts) (apply operation ts)
-                  :else (apply mapv func ts)
-                  )
-                )]
+  (letfn
+    [(func [& ts]
+           {:pre [(every? check-tensor ts)]}
+           (letfn
+             [(recursion [& ts]
+                         {:pre [(or
+                                 (every? number? ts)
+                                 (apply check-equal-size ts)
+                                 )]}
+                         (cond
+                           (every? number? ts) (apply operation ts)
+                           :else (apply mapv recursion ts)
+                           )
+                         )]
+             (apply recursion ts)
+             )
+           )]
     func
     )
   )
@@ -111,5 +125,3 @@
 (def t- (tensorwise -))
 (def t* (tensorwise *))
 (def td (tensorwise /))
-
-
