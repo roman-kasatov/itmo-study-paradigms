@@ -84,8 +84,14 @@
   {:pre [(every? check-matrix ms)]
    :post []
    }
-      ;; :NOTE: m2 транспонируется столько раз сколько строк в m1
-  (reduce (fn [m1 m2] (mapv (fn [row] (m*v (transpose m2) row)) m1)) ms)
+    (reduce
+     (fn [m1 m2]
+       (let [transposed-m2 (transpose m2)]
+        (mapv (fn [row] (m*v transposed-m2 row)) m1)
+         )
+       )
+     ms
+     )
   )
 
 (defn check-tensor [t]

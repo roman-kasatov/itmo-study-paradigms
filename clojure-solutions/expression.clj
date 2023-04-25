@@ -65,12 +65,10 @@
 (defn parseFunction [string]
   (letfn
     [(inner [expression]
-            (let [t (println expression)]
-              (cond
-                (number? expression) (constant expression)
-                (symbol? expression) (variable (str expression))
-                :else (apply (get operations (first expression)) (map inner (rest expression)))
-                )
+            (cond
+              (number? expression) (constant expression)
+              (symbol? expression) (variable (str expression))
+              :else (apply (get operations (first expression)) (map inner (rest expression)))
               )
             )]
     (inner (read-string string))
