@@ -201,6 +201,10 @@ function createParseError(name) {
     return constructor
 }
 
+const EmptyInputError = createParseError(
+    "EmptyInputError"
+)
+
 const OperationSignPositionError = createParseError(
     "OperationSignPositionError"
 )
@@ -221,6 +225,10 @@ const splitByParenthesis = str =>
     str.replace(/([()])/g, " $& ").trim().split(/\s+/)
 
 const parsePrefixPostfix = isPrefix => str => {
+    if (str === '') {
+        throw new EmptyInputError('Input string was empty')
+    }
+
     let prevBit = null
     const stack = []
     const openingParenthesisPositions = []
@@ -293,4 +301,3 @@ let parse = (str) => {
     }
     return stack.pop()
 }
-
