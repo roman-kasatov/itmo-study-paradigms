@@ -1,5 +1,6 @@
 package queue;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 /*
@@ -89,6 +90,15 @@ public class ArrayQueue extends AbstractQueue {
         return foundFlag;
     }
 
+    // Pred: n > 0
+    // Post: n' = n - 1 && for i=0..(n - 2) a'[i] == a[i] && R = a[n - 1]
+    public Object remove() {
+        Object ret = peek();
+        arr[(size + head - 1 + arr.length) % arr.length] = null;
+        size--;
+        return ret;
+    }
+
     // Pred: element != null
     // Post n' == n + 1 && for i=0..(n - 1) a'[i + 1] == a[i] && a'[n] = element
     public void push(Object element) {
@@ -112,6 +122,8 @@ public class ArrayQueue extends AbstractQueue {
     public Object[] toArray() {
         return toArray(size);
     }
+
+
 
     private Object[] toArray(int lenght) {
         Object[] ret = new Object[lenght];
