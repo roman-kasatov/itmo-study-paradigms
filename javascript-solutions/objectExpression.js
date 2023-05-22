@@ -71,7 +71,7 @@ const createSumsqN = argNmb =>
     createOperation(
         (...values) => values.map(a => a * a).reduce((sum, a) => sum + a, 0),
         "sumsq" + argNmb,
-        (name, ...values) => values
+        (name, ...values) => treeSum(values
             .map(a =>
                 new Multiply(
                     new Multiply(
@@ -80,8 +80,7 @@ const createSumsqN = argNmb =>
                     ),
                     a
                 )
-            )
-            .reduce((sum, a) => new Add(sum, a), new Const(0))
+            ))
     )
 
 function createDistanceN(argNmb) {
@@ -97,12 +96,11 @@ function createDistanceN(argNmb) {
         }
         this.diff = function (name) {
             return new Divide(
-                this.values.map(a =>
+                treeSum(this.values.map(a =>
                     new Multiply(
                         a.diff(name),
                         a
-                    ))
-                    .reduce((sum, a) => new Add(sum, a), new Const(0)),
+                    ))),
                 this
             )
         }
@@ -113,14 +111,13 @@ function createDistanceN(argNmb) {
 const Sumexp = createOperation(
     (...values) => values.map(a => Math.exp(a)).reduce((sum, a) => sum + a, 0),
     "sumexp",
-    (name, ...values) => values
+    (name, ...values) => treeSum(values
         .map(a =>
             new Multiply(
                 a.diff(name),
                 new Sumexp(a)
             )
-        )
-        .reduce((sum, a) => new Add(sum, a), new Const(0))
+        ))
 )
 
 const LSE = createOperation(
@@ -151,7 +148,7 @@ const Negate = createOperation(
 function Variable(name) {
     this.evaluate = (...args) => args[variablePositions[name]]
     this.toString = () => name
-    this.diff = (dif_name) => dif_name === name ? new Const(1) : new Const(0)
+    this.diff = (dif_name) => dif_name === name ? const1 : const0
     this.prefix = () => name
     this.postfix = this.prefix
 }
@@ -159,9 +156,19 @@ function Variable(name) {
 function Const(value) {
     this.evaluate = () => value
     this.toString = () => value.toString()
-    this.diff = () => new Const(0)
+    this.diff = () => const0
     this.prefix = () => value.toString()
     this.postfix = this.prefix
+}
+
+const const0 = new Const(0)
+const const1 = new Const(1)
+
+function treeSum(values) {
+    if (values.length === 1) {
+        return values[0]
+    }
+    return new Add(treeSum(values.slice(0, values.length / 2)), treeSum(values.slice(values.length / 2)))
 }
 
 const operations = {
@@ -287,9 +294,10 @@ const parsePrefixPostfix = isPrefix => str => {
 const parsePostfix = parsePrefixPostfix(false)
 const parsePrefix = parsePrefixPostfix(true)
 
+
 let parse = (str) => {
     let stack = []
-    for (const bit of str.split(" ").filter(s => s !== '')) {
+    for (const bit of str.trim().split(/\s+/)) {
         if (bit in operations) { // operation
             let [Func, argNmb] = operations[bit]
             stack.push(new Func(...stack.splice(-argNmb, argNmb)));
