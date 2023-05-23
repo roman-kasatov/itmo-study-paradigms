@@ -1,8 +1,10 @@
+"use strict"
 
 const variablePositions = { 'x': 0, 'y': 1, 'z': 2 }
 
 function AbstractOperation(...values) {
     this.values = values
+    this._diff = {}
 
     this.evaluate = function (...args) {
         return this.func(...this.values.map(v => v.evaluate(...args)))
@@ -13,7 +15,10 @@ function AbstractOperation(...values) {
     }
 
     this.diff = function (name) {
-        return this.diff_function(name, ...values)
+        if (!(name in this._diff)) {
+            this._diff[name] = this.diff_function(name, ...values)
+        }
+        return this._diff[name]
     }
 
     this.prefix = function () {
@@ -26,7 +31,7 @@ function AbstractOperation(...values) {
 }
 
 function createOperation(func, sign, diff_function) {
-    constructor = function (...values) {
+    let constructor = function (...values) {
         AbstractOperation.call(this, ...values)
     }
     constructor.prototype.func = func
@@ -71,25 +76,27 @@ const createSumsqN = argNmb =>
     createOperation(
         (...values) => values.map(a => a * a).reduce((sum, a) => sum + a, 0),
         "sumsq" + argNmb,
-        (name, ...values) => treeSum(values
-            .map(a =>
-                new Multiply(
+        (name, ...values) => new Multiply(
+            treeSum(values
+                .map(a =>
                     new Multiply(
                         a.diff(name),
-                        new Const(2)
-                    ),
-                    a
+                        a
+                    )
                 )
-            ))
+            ),
+            new Const(2)
+        )
     )
 
 function createDistanceN(argNmb) {
-    constructor = function(...values) {
+    let constructor = function(...values) {
         this.values = values
         this.evaluate = function (...args) {
-            return Math.sqrt(values.map(a => new Multiply(a, a))
-                .reduce((sum, a) => new Add(sum, a), new Const(0))
-                .evaluate(...args))
+            return Math.sqrt(
+                treeSum(values.map(a => new Multiply(a, a)))
+                .evaluate(...args)
+            )
         }
         this.toString = function () {
             return this.values.map(v => v.toString()).join(" ") + " " + "distance" + argNmb
@@ -199,7 +206,7 @@ ParseError.prototype = Object.create(Error.prototype)
 ParseError.prototype.name = "ParseError"
 
 function createParseError(name) {
-    constructor = function(message) {
+    let constructor = function(message) {
         ParseError.call(this, message)
         this.name = name
     }
