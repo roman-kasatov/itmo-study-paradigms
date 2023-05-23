@@ -20,6 +20,7 @@ find_divisors(Cur, Value, [Cur | Rec]) :-
 	find_divisors(Cur, Next, Rec).
 
 find_divisors(Cur, Value, List) :-
+# :NOTE: единственный четный делитель это 2, можно уменьшить количество проверок в 2 раза
 	Next is Cur + 1,
 	find_divisors(Next, Value, List).
 
